@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>วิเคราะห์ขั้นตอนการเติบโตทางเศรษฐกิจของ Rostow</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1f2937;--mu:#6b7280;--ac:#1d4ed8;--ac2:#e0e7ff;--bd:#d9d6cd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1e2128;--tx:#e5e7eb;--mu:#9ca3af;--ac:#7aa2ff;--ac2:#27304a;--bd:#363b46;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;line-height:1.6}
+.w{max-width:1000px;margin:0 auto;padding:20px 14px 60px}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 10px}
+.sub{color:var(--mu);margin:0 0 18px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+.st{display:inline-block;background:var(--ac);color:#fff;border-radius:50%;width:26px;height:26px;text-align:center;margin-right:8px;font-size:.9rem}
+button{font:inherit;cursor:pointer;border:1px solid var(--ac);background:var(--card);color:var(--ac);padding:8px 14px;border-radius:8px}
+button:hover,button.on{background:var(--ac);color:#fff}
+button.p{background:var(--ac);color:#fff}
+.r{display:flex;flex-wrap:wrap;gap:8px}
+input,select{font:inherit;width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+label{font-size:.9rem;color:var(--mu);display:block;margin-bottom:3px}
+.ac{position:relative}
+#sg{position:absolute;left:0;right:0;top:100%;z-index:5;background:var(--card);border:1px solid var(--bd);border-radius:8px;max-height:240px;overflow-y:auto;display:none}
+#sg div{padding:7px 10px;cursor:pointer}#sg div:hover{background:var(--ac2)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{border:1px solid var(--bd);padding:7px 9px;text-align:center}th{background:var(--ac2)}td:first-child{text-align:left}
+.ex{font-size:.92rem;color:var(--mu);margin-top:10px}
+.gr{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.cv{height:290px;position:relative}
+.hd{display:none}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>🌍 วิเคราะห์ขั้นตอนการเติบโตทางเศรษฐกิจ</h1>
+<p class="sub">ตามทฤษฎีของ Walt Whitman Rostow (The Stages of Economic Growth, 1960) — 5 ขั้น</p>
+
+<div class="c"><h2><span class="st">1</span>เลือกรูปแบบการวิเคราะห์</h2>
+<div class="r"><button id="m1" onclick="setMode(1)">📊 กรอกตัวเลขตัวชี้วัดเศรษฐกิจ</button><button id="m2" onclick="setMode(2)">📝 เลือกลักษณะเชิงคุณภาพ</button></div></div>
+
+<div class="c hd" id="s2"><h2><span class="st">2</span>เลือกประเทศ (พิมพ์ตัวอักษรแรกแล้วเลือกจากรายการ)</h2>
+<div class="ac"><input id="ct" autocomplete="off" placeholder="เช่น T → Thailand"><div id="sg"></div></div>
+<div class="ex" id="cn"></div></div>
+
+<div class="c hd" id="s3"><h2><span class="st">3</span>ใส่ข้อมูลเพื่อวิเคราะห์</h2><div class="g" id="fm"></div></div>
+
+<div class="c hd" id="s4"><h2><span class="st">4</span>ประมวลผลข้อมูล</h2>
+<div class="r"><button class="p" onclick="doTable()">🧮 ประมวลผลตาราง</button><button class="p" onclick="doCharts()">📈 ประมวลผลกราฟ</button><button onclick="resetAll()">🔄 Reset หน้า</button></div>
+<div id="er" style="color:#dc2626;margin-top:8px"></div></div>
+
+<div class="c hd" id="rt"><h2>📋 ตารางสถิติวิเคราะห์ — <span id="rc"></span></h2>
+<div id="cap"><div class="tw" id="tbw"></div><div class="ex" id="exp"></div></div>
+<div class="r" style="margin-top:10px"><button onclick="dlTblPng()">⬇️ ดาวน์โหลด PNG</button><button onclick="dlXlsx()">⬇️ ดาวน์โหลด Excel</button></div></div>
+
+<div class="hd" id="rg"><h2 style="margin:6px 2px 10px">📈 กราฟแสดงผล</h2><div class="gr" id="gc"></div></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const CT="Afghanistan|Åland Islands|Albania|Algeria|American Samoa|Andorra|Angola|Anguilla|Antigua and Barbuda|Argentina|Armenia|Aruba|Australia|Austria|Azerbaijan|Bahamas|Bahrain|Bangladesh|Barbados|Belarus|Belgium|Belize|Benin|Bermuda|Bhutan|Bolivia|Bonaire, Sint Eustatius and Saba|Bosnia and Herzegovina|Botswana|Brazil|British Virgin Islands|Brunei|Bulgaria|Burkina Faso|Burundi|Cambodia|Cameroon|Canada|Cape Verde|Cayman Islands|Central African Republic|Chad|Chile|China|Christmas Island|Cocos Islands|Colombia|Comoros|Congo (Republic)|Cook Islands|Costa Rica|Côte d'Ivoire|Croatia|Cuba|Curaçao|Cyprus|Czechia|DR Congo|Denmark|Djibouti|Dominica|Dominican Republic|Ecuador|Egypt|El Salvador|Equatorial Guinea|Eritrea|Estonia|Eswatini|Ethiopia|Falkland Islands|Faroe Islands|Fiji|Finland|France|French Guiana|French Polynesia|Gabon|Gambia|Georgia|Germany|Ghana|Gibraltar|Greece|Greenland|Grenada|Guadeloupe|Guam|Guatemala|Guernsey|Guinea|Guinea-Bissau|Guyana|Haiti|Honduras|Hong Kong|Hungary|Iceland|India|Indonesia|Iran|Iraq|Ireland|Isle of Man|Israel|Italy|Jamaica|Japan|Jersey|Jordan|Kazakhstan|Kenya|Kiribati|Kosovo|Kuwait|Kyrgyzstan|Laos|Latvia|Lebanon|Lesotho|Liberia|Libya|Liechtenstein|Lithuania|Luxembourg|Macao|Madagascar|Malawi|Malaysia|Maldives|Mali|Malta|Marshall Islands|Martinique|Mauritania|Mauritius|Mayotte|Mexico|Micronesia|Moldova|Monaco|Mongolia|Montenegro|Montserrat|Morocco|Mozambique|Myanmar|Namibia|Nauru|Nepal|Netherlands|New Caledonia|New Zealand|Nicaragua|Niger|Nigeria|Niue|North Korea|North Macedonia|Northern Mariana Islands|Norway|Oman|Pakistan|Palau|Palestine|Panama|Papua New Guinea|Paraguay|Peru|Philippines|Poland|Portugal|Puerto Rico|Qatar|Réunion|Romania|Russia|Rwanda|Saint Barthélemy|Saint Helena|Saint Kitts and Nevis|Saint Lucia|Saint Martin|Saint Pierre and Miquelon|Saint Vincent and the Grenadines|Samoa|San Marino|São Tomé and Príncipe|Saudi Arabia|Senegal|Serbia|Seychelles|Sierra Leone|Singapore|Sint Maarten|Slovakia|Slovenia|Solomon Islands|Somalia|South Africa|South Korea|South Sudan|Spain|Sri Lanka|Sudan|Suriname|Sweden|Switzerland|Syria|Taiwan|Tajikistan|Tanzania|Thailand|Timor-Leste|Togo|Tokelau|Tonga|Trinidad and Tobago|Tunisia|Türkiye|Turkmenistan|Turks and Caicos Islands|Tuvalu|Uganda|Ukraine|United Arab Emirates|United Kingdom|United States|Uruguay|US Virgin Islands|Uzbekistan|Vanuatu|Vatican City|Venezuela|Vietnam|Wallis and Futuna|Western Sahara|Yemen|Zambia|Zimbabwe".split("|");
+const SN=["1 สังคมจารีต","2 เงื่อนไขก่อนทะยาน","3 ทะยานสู่การเติบโต","4 เคลื่อนสู่ความเป็นผู้ใหญ่","5 ยุคบริโภคมวลชนสูง"];
+const SD=["เศรษฐกิจพึ่งเกษตรเพื่อยังชีพ ผลิตภาพต่ำ เทคโนโลยีดั้งเดิม โครงสร้างสังคมตามชาติกำเนิด","เริ่มมีเงื่อนไขนำสู่การพัฒนา เช่น เกษตรเชิงพาณิชย์ การค้า การศึกษา รัฐชาติ และผู้นำที่สนับสนุนการเปลี่ยนแปลง","อัตราการลงทุนเพิ่มสูงอย่างก้าวกระโดด มีภาคนำ (leading sectors) ขยายตัวเร็ว และการเติบโตกลายเป็นเรื่องปกติ","เศรษฐกิจกระจายตัวสู่อุตสาหกรรมหลากหลาย ใช้เทคโนโลยีสมัยใหม่ และเชื่อมโยงเศรษฐกิจโลกมากขึ้น","สินค้าคงทน บริการ และสวัสดิการเป็นแกนของเศรษฐกิจ ผู้คนส่วนใหญ่มีรายได้เกินความจำเป็นพื้นฐาน"];
+const Q=[
+{k:"GDP ต่อหัว (USD/คน/ปี)",c:[500,1500,4000,12000,35000],w:.25,log:1,max:1e6},
+{k:"สัดส่วนภาคเกษตรต่อ GDP (%)",c:[60,40,25,10,3],w:.2,max:100},
+{k:"อัตราการลงทุนต่อ GDP (%)",c:[5,8,15,22,25],w:.15,max:100},
+{k:"สัดส่วนประชากรในเมือง (%)",c:[10,20,35,60,80],w:.15,max:100},
+{k:"สัดส่วนภาคบริการต่อ GDP (%)",c:[20,30,40,50,70],w:.15,max:100},
+{k:"อัตราการรู้หนังสือ (%)",c:[20,40,65,85,98],w:.1,max:100}];
+const QQ=[
+["โครงสร้างการผลิตหลัก",["เกษตรเพื่อยังชีพ","เกษตรเชิงพาณิชย์เริ่มขยาย","อุตสาหกรรมนำร่องโตเร็ว","อุตสาหกรรมหลากหลาย/เทคโนโลยีสูงขึ้น","บริการและสินค้าคงทนเป็นแกนหลัก"]],
+["อัตราการลงทุนและการออม",["ต่ำมาก (<5%)","เริ่มเพิ่ม (5–10%)","สูงขึ้น (>10%)","สูงต่อเนื่อง (15–20%+)","ทรงตัวระดับสูง"]],
+["เทคโนโลยีและนวัตกรรม",["เทคโนโลยีดั้งเดิม","เริ่มรับเทคโนโลยีใหม่","ใช้เทคโนโลยีสมัยใหม่ในภาคนำ","แพร่ทุกสาขา มี R&D","นวัตกรรมขั้นสูง/ดิจิทัล"]],
+["สถาบันการเมืองและรัฐ",["อำนาจกระจัดกระจาย","รัฐชาติเริ่มก่อตัว","ชนชั้นนำหนุนอุตสาหกรรม","รัฐบริหารเศรษฐกิจมั่นคง","รัฐสวัสดิการ/กระจายรายได้"]],
+["รูปแบบการบริโภค",["เพียงปัจจัยสี่","เริ่มบริโภคสินค้าอุตสาหกรรม","ครัวเรือนเมืองบริโภคมากขึ้น","ชนชั้นกลางขยาย","บริโภคมวลชน (รถ บ้าน บริการ)"]],
+["การค้าและโครงสร้างพื้นฐาน",["จำกัด","ถนน/ท่าเรือเริ่มพัฒนา","ระบบราง/พลังงานขยาย","เชื่อมโยงตลาดโลก","โครงข่ายดิจิทัล/โลจิสติกส์ครบ"]]];
+let mode=0,country="",R=null,charts=[];
+function interp(v,c){const up=c[0]<c[4];if(up?v<=c[0]:v>=c[0])return 1;if(up?v>=c[4]:v<=c[4])return 5;
+for(let i=0;i<4;i++){const a=c[i],b=c[i+1];if((v-a)*(v-b)<=0)return i+1+(v-a)/(b-a)}return 1}
+function setMode(m){mode=m;$("m1").classList.toggle("on",m==1);$("m2").classList.toggle("on",m==2);
+["s2","s3","s4"].forEach(i=>$(i).classList.remove("hd"));
+$("fm").innerHTML=m==1?Q.map((f,i)=>`<div><label>${f.k}</label><input type="number" min="0" step="any" id="f${i}" placeholder="ตัวเลข"></div>`).join(""):
+QQ.map((q,i)=>`<div><label>${q[0]}</label><select id="f${i}"><option value="">— เลือก —</option>${q[1].map((o,j)=>`<option value="${j+1}">${o}</option>`).join("")}</select></div>`).join("");
+$("er").textContent=""}
+const ci=$("ct"),sg=$("sg");
+ci.addEventListener("input",()=>{const q=ci.value.trim().toLowerCase();country="";$("cn").textContent="";
+if(!q){sg.style.display="none";return}
+const m=CT.filter(n=>n.toLowerCase().startsWith(q)).concat(CT.filter(n=>!n.toLowerCase().startsWith(q)&&n.toLowerCase().includes(q))).slice(0,40);
+sg.innerHTML=m.map(n=>`<div>${n}</div>`).join("")||"<div>ไม่พบประเทศ</div>";sg.style.display="block"});
+sg.addEventListener("click",e=>{const n=e.target.textContent;if(CT.includes(n)){country=n;ci.value=n;sg.style.display="none";$("cn").textContent="✔ เลือกแล้ว: "+n+" (จากทั้งหมด "+CT.length+" ประเทศ/เขตการปกครอง)"}});
+document.addEventListener("click",e=>{if(!e.target.closest(".ac"))sg.style.display="none"});
+function compute(){const rows=[];
+for(let i=0;i<(mode==1?Q.length:QQ.length);i++){const el=$("f"+i),raw=el.value;
+if(raw==="")throw"กรุณากรอก/เลือกข้อมูลให้ครบทุกช่อง";
+if(mode==1){const f=Q[i],v=+raw;if(v<0||v>f.max||(f.log&&v<=0))throw"ค่าของ \""+f.k+"\" ไม่อยู่ในช่วงที่ถูกต้อง";
+const s=interp(f.log?Math.log10(v):v,f.log?f.c.map(Math.log10):f.c);rows.push({n:f.k,v:v,s:s,w:f.w})}
+else rows.push({n:QQ[i][0],v:QQ[i][1][raw-1],s:+raw,w:1/QQ.length})}
+const est=rows.reduce((a,r)=>a+r.s*r.w,0)/rows.reduce((a,r)=>a+r.w,0);
+let fit=SN.map((_,i)=>Math.exp(-Math.pow(est-(i+1),2)/(2*.6*.6)));const t=fit.reduce((a,b)=>a+b,0);fit=fit.map(x=>x/t*100);
+return{rows,est,st:Math.min(5,Math.max(1,Math.round(est))),fit}}
+function chk(){$("er").textContent="";if(!mode){$("er").textContent="กรุณาเลือกรูปแบบการวิเคราะห์";return 0}
+if(!country){$("er").textContent="กรุณาเลือกประเทศจากรายการ";return 0}
+try{R=compute();return 1}catch(e){$("er").textContent=e;return 0}}
+const f2=x=>x.toFixed(2);
+function doTable(){if(!chk())return;$("rt").classList.remove("hd");$("rc").textContent=country;
+let h=`<table id="tb"><thead><tr><th>ตัวชี้วัด</th><th>ค่าที่ใส่</th><th>ระดับขั้น (1–5)</th><th>ขั้นที่ใกล้เคียง</th><th>น้ำหนัก</th><th>คะแนนถ่วงน้ำหนัก</th></tr></thead><tbody>`;
+R.rows.forEach(r=>h+=`<tr><td>${r.n}</td><td>${r.v}</td><td>${f2(r.s)}</td><td>${SN[Math.round(r.s)-1]}</td><td>${f2(r.w)}</td><td>${f2(r.s*r.w)}</td></tr>`);
+h+=`<tr><th colspan="2">ระดับรวมโดยประมาณ</th><th>${f2(R.est)}</th><th colspan="3">${SN[R.st-1]}</th></tr>`;
+h+=`<tr><th colspan="6">ความเหมาะสมของแต่ละขั้น (%)</th></tr>`;
+SN.forEach((s,i)=>h+=`<tr><td colspan="2">${s}</td><td>${f2(R.fit[i])}%</td><td colspan="3" style="text-align:left">${SD[i].slice(0,60)}…</td></tr>`);
+$("tbw").innerHTML=h+"</tbody></table>";
+$("exp").innerHTML=`<b>คำอธิบาย:</b> ${mode==1?"ตัวเลขแต่ละตัวชี้วัดถูกแปลงเป็นระดับ 1–5 โดยเทียบกับค่ากลางของแต่ละขั้น (ประมาณการจากแบบแผนการพัฒนาทั่วไป) ด้วยการประมาณค่าเชิงเส้น (GDP ต่อหัวใช้ลอการิทึม) แล้วถ่วงน้ำหนักเป็นระดับรวม":"คำตอบเชิงคุณภาพแต่ละข้อถูกให้คะแนน 1–5 ตามขั้นของ Rostow แล้วเฉลี่ยเท่ากันเป็นระดับรวม"} ค่า \"ความเหมาะสม (%)\" คำนวณจากระยะห่างระหว่างระดับรวมกับแต่ละขั้น (การแจกแจงแบบเกาส์เซียน) และรวมกันเป็น 100%<br><b>ผลสรุป:</b> ${country} อยู่ใกล้ <b>ขั้นที่ ${SN[R.st-1]}</b> (ระดับ ${f2(R.est)}) — ${SD[R.st-1]}<br><i>ข้อควรระวัง: เกณฑ์เป็นการประมาณเพื่อการเรียนรู้ ทฤษฎีของ Rostow ถูกวิจารณ์ว่าเป็นเส้นทางเดียวตายตัว ผลจึงไม่ใช่การจำแนกอย่างเป็นทางการ</i>`;
+$("rt").scrollIntoView({behavior:"smooth"})}
+async function save(name,data){try{const d=await claude.use("downloads");if(!d){alert("ไม่รองรับการดาวน์โหลดในมุมมองนี้");return}await d.save({filename:name,data})}catch(e){if(e&&e.code!=="declined")alert("ดาวน์โหลดไม่สำเร็จ: "+(e.message||e))}}
+function dlTblPng(){html2canvas($("cap"),{backgroundColor:getComputedStyle(document.body).backgroundColor==="rgba(0, 0, 0, 0)"?"#fff":getComputedStyle($("rt")).backgroundColor,scale:2}).then(c=>c.toBlob(b=>save("rostow-table-"+country+".png",b)))}
+function dlXlsx(){const wb=XLSX.utils.table_to_book($("tb"),{sheet:"Rostow"});save("rostow-"+country+".xlsx",XLSX.write(wb,{bookType:"xlsx",type:"array"}))}
+const bg={id:"bg",beforeDraw(c){const x=c.ctx;x.save();x.globalCompositeOperation="destination-over";x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.restore()}};
+const nums={id:"nums",afterDatasetsDraw(c){if(!c.options.showNums)return;const x=c.ctx;x.save();x.font="bold 12px sans-serif";x.fillStyle="#111";x.textAlign="center";
+c.data.datasets.forEach((d,i)=>c.getDatasetMeta(i).data.forEach((e,j)=>{const p=e.tooltipPosition(),v=d.data[j];x.fillText(typeof v==="number"?(Math.round(v*100)/100)+"":v,p.x,p.y-6)}));x.restore()}};
+function card(id,title,cfg){const d=document.createElement("div");d.className="c";
+d.innerHTML=`<h2>${title}</h2><div class="cv"><canvas id="${id}"></canvas></div><div class="bar"><label style="margin:0"><input type="checkbox" style="width:auto" onchange="tg('${id}',this.checked)"> แสดงตัวเลขบนกราฟ</label><button onclick="dlC('${id}')">⬇️ PNG</button></div>`;
+$("gc").appendChild(d);cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,showNums:false},cfg.options||{});cfg.plugins=[bg,nums];charts.push(new Chart($(id),cfg))}
+function tg(id,v){const c=Chart.getChart(id);c.options.showNums=v;c.update()}
+function dlC(id){$(id).toBlob(b=>save(id+"-"+country+".png",b))}
+function doCharts(){if(!chk())return;charts.forEach(c=>c.destroy());charts=[];$("gc").innerHTML="";$("rg").classList.remove("hd");
+const fit=R.fit.map(x=>+x.toFixed(2)),pal=["#94a3b8","#38bdf8","#22c55e","#f59e0b","#ef4444"],rn=R.rows.map(r=>r.n.replace(/\s*\(.*\)/,"")),rs=R.rows.map(r=>+r.s.toFixed(2));
+const cl=SN.map(s=>s.slice(2));
+card("g1","เรดาร์: ความเหมาะสมแต่ละขั้น (%)",{type:"radar",data:{labels:cl,datasets:[{label:country,data:fit,backgroundColor:"rgba(29,78,216,.25)",borderColor:"#1d4ed8"}]}});
+card("g2","แท่ง: ความเหมาะสมแต่ละขั้น (%)",{type:"bar",data:{labels:cl,datasets:[{label:"%",data:fit,backgroundColor:pal}]},options:{plugins:{legend:{display:false}}}});
+card("g3","โดนัท: สัดส่วนความเหมาะสม",{type:"doughnut",data:{labels:cl,datasets:[{data:fit,backgroundColor:pal}]}});
+card("g4","เส้น: เส้นทางการเติบโตตามขั้น",{type:"line",data:{labels:cl,datasets:[{label:"ความเหมาะสม (%)",data:fit,borderColor:"#1d4ed8",tension:.4,fill:true,backgroundColor:"rgba(29,78,216,.15)"}]}});
+card("g5","แท่งแนวนอน: ระดับขั้นของแต่ละตัวชี้วัด (1–5)",{type:"bar",data:{labels:rn,datasets:[{label:"ระดับ",data:rs,backgroundColor:"#6366f1"}]},options:{indexAxis:"y",scales:{x:{min:1,max:5}},plugins:{legend:{display:false}}}});
+card("g6","Polar Area: ความเหมาะสมแต่ละขั้น",{type:"polarArea",data:{labels:cl,datasets:[{data:fit,backgroundColor:pal.map(c=>c+"bb")}]}});
+card("g7","เรดาร์: ระดับตัวชี้วัด (1–5)",{type:"radar",data:{labels:rn,datasets:[{label:country,data:rs,backgroundColor:"rgba(34,197,94,.25)",borderColor:"#16a34a"}]},options:{scales:{r:{min:0,max:5}}}});
+card("g8","แท่ง: คะแนนถ่วงน้ำหนักต่อตัวชี้วัด",{type:"bar",data:{labels:rn,datasets:[{label:"คะแนน",data:R.rows.map(r=>+(r.s*r.w).toFixed(2)),backgroundColor:"#f59e0b"}]},options:{plugins:{legend:{display:false}}}});
+$("rg").scrollIntoView({behavior:"smooth"})}
+function resetAll(){charts.forEach(c=>c.destroy());charts=[];mode=0;country="";R=null;ci.value="";sg.style.display="none";$("cn").textContent="";$("er").textContent="";$("gc").innerHTML="";$("fm").innerHTML="";
+["s2","s3","s4","rt","rg"].forEach(i=>$(i).classList.add("hd"));$("m1").classList.remove("on");$("m2").classList.remove("on");scrollTo({top:0,behavior:"smooth"})}
+</script>
+</body>
+</html>
